@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<complex.h>
 #include<math.h>
 
 #define PI  3.141592653589793
@@ -110,6 +111,25 @@ int main(int argc, char** argv) {
 
     printf("# ng = %d\n", ng);
 
+
+    // Test
+    double complex *h;
+
+    h = (double complex*) malloc(sizeof(double complex) * ng * ng);
+
+    #define H(I,J) h[i+ng*j]
+    for (int j=0; j<ng; j++) {
+        for (int i=0; i<ng; i++) {
+            if (i == j) {
+                H(i, i) = 0.5 * dot3d(gtbl[i], gtbl[i]);
+            } else {
+                H(i, j) = 0.0;
+            }
+        }
+    }
+
+
+    #undef H
 
 
     return 0;
