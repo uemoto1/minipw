@@ -13,7 +13,7 @@ void zheev(char*, char*, int*, double complex*, int*, double*, double complex*, 
 void zgemm(char*, char*, int*, int*, int*, double complex*, double complex*, int*, double complex*, int*, double complex*, double complex*, int*);	
 #endif
 
-void vdot(int, int, int, double complex*, double complex*, double complex*);
+void matmul_h(int, int, int, double complex*, double complex*, double complex*);
 
 
 double dot3d(vec3d*, vec3d*);

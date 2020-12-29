@@ -17,7 +17,7 @@ void scal3d(vec3d* a, double f) {
     a->z *= f;
 }
 
-void vdot(int na, int mb, int kab, double complex *a, double complex *b, double complex *c) {
+void matmul_h(int na, int mb, int kab, double complex *a, double complex *b, double complex *c) {
     #ifdef USE_LAPACK
         double complex alpha = 1.0;
         double complex beta = 0.0;
