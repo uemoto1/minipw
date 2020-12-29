@@ -2,30 +2,11 @@
 #include<stdlib.h>
 #include<complex.h>
 #include<math.h>
+#include"linear.h"
+
 
 #define PI  3.141592653589793
 
-typedef struct {
-    double x;
-    double y;
-    double z;
-} vec3d;
-
-double dot3d(vec3d* a, vec3d* b) {
-    return a->x * b->x + a->y * b->y + a->z * b->z;
-}
-
-void cross3d(vec3d* a, vec3d* b, vec3d* c) {
-    c->x = a->y * b->z - a->z * b->y;
-    c->y = a->z * b->x - a->x * b->z;
-    c->z = a->x * b->y - a->y * b->x;
-}
-
-void scal3d(vec3d* a, double f) {
-    a->x *= f;
-    a->y *= f;
-    a->z *= f;
-}
 
 
 int main(int argc, char** argv) {
@@ -107,29 +88,12 @@ int main(int argc, char** argv) {
         }
     }
     ng = ig;
-    realloc(gtbl, sizeof(vec3d) * ng);
+    gtbl = realloc(gtbl, sizeof(vec3d) * ng);
 
     printf("# ng = %d\n", ng);
 
 
-    // Test
-    double complex *h;
 
-    h = (double complex*) malloc(sizeof(double complex) * ng * ng);
-
-    #define H(I,J) h[i+ng*j]
-    for (int j=0; j<ng; j++) {
-        for (int i=0; i<ng; i++) {
-            if (i == j) {
-                H(i, i) = 0.5 * dot3d(gtbl[i], gtbl[i]);
-            } else {
-                H(i, j) = 0.0;
-            }
-        }
-    }
-
-
-    #undef H
 
 
     return 0;
