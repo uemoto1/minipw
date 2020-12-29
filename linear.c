@@ -1,17 +1,18 @@
+#include "common.h"
 #include "linear.h"
 
 
-double dot3d(vec3d* a, vec3d* b) {
+double dot3d(Vec3d* a, Vec3d* b) {
     return a->x * b->x + a->y * b->y + a->z * b->z;
 }
 
-void cross3d(vec3d* a, vec3d* b, vec3d* c) {
+void cross3d(Vec3d* a, Vec3d* b, Vec3d* c) {
     c->x = a->y * b->z - a->z * b->y;
     c->y = a->z * b->x - a->x * b->z;
     c->z = a->x * b->y - a->y * b->x;
 }
 
-void scal3d(vec3d* a, double f) {
+void scal3d(Vec3d* a, double f) {
     a->x *= f;
     a->y *= f;
     a->z *= f;
