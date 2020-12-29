@@ -1,11 +1,5 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<complex.h>
-#include<math.h>
+#include"common.h"
 #include"linear.h"
-
-
-#define PI  3.141592653589793
 
 
 
