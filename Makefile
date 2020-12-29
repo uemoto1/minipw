@@ -9,6 +9,9 @@ main.o: main.c
 linear.o: linear.c
 	$(CC) $^ -c -o $@ $(FLAGS) $(INCLUDES)
 
-.PHONY: all
+.PHONY: all clean
+
 all: minipw
 
+clean:
+	rm -f minipw *.o
