@@ -133,6 +133,10 @@ int main(int argc, char** argv) {
     printf("# mb3 = %d\n", mb3);
 
 
+    printf("#### k table generation\n");
+    int nk;
+    Vec3d *ktbl;
+    ktbl = generate_ktbl(&cell, nk1, nk2, nk3, &nk);
 
     return 0;
 }
