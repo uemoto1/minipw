@@ -75,7 +75,8 @@ Vec3d* generate_ktbl(UnitCell* c, int nk1, int nk2, int nk3, int* nk) {
 int main(int argc, char** argv) {
     Vec3d a1, a2, a3;
     double ecut;
-    int nk1, nk2, nk3;
+    int nk1, nk2, nk3, nb;
+    int nproj = 32;
     
     scanf("%lf", &a1.x);
     scanf("%lf", &a1.y);
@@ -90,6 +91,7 @@ int main(int argc, char** argv) {
     scanf("%d", &nk1);
     scanf("%d", &nk2);
     scanf("%d", &nk3);
+    scanf("%d", &nb);
  
     printf("# a1.x = %e\n", a1.x);
     printf("# a1.y = %e\n", a1.y);
@@ -104,6 +106,7 @@ int main(int argc, char** argv) {
     printf("# nk1 = %d\n", nk1);
     printf("# nk2 = %d\n", nk2);
     printf("# nk3 = %d\n", nk3);
+    printf("# nb = %d\n", nb);
 
 
     printf("#### Unit cell information\n");
@@ -140,21 +143,57 @@ int main(int argc, char** argv) {
     printf("# nk = %d\n", nk);
 
 
+    printf("#### Allocate wavefunction\n");
+    double complex **wf;
+    double complex **proj;
+    double **tkin;
+
+    wf = (double complex**) malloc(sizeof(double complex*) * nk);
+    tkin = (double**) malloc(sizeof(double*) * nk);
+    proj = (double complex**) malloc(sizeof(double complex*) * nk);
+    for(int ik=0; ik<nk; ik++) {
+        wf[ik] = (double complex*) malloc(sizeof(double complex) * ng * nb);
+        tkin[ik] = (double*) malloc(sizeof(double) * ng);
+        proj[ik] = (double complex*) malloc(sizeof(double) * nproj * ng);
+    }
+    printf("# allocated wf: %lu [bytes]\n", sizeof(double complex) * nk * nb * ng);
+    printf("# allocated tkin: %lu [bytes]\n", sizeof(double) * nk * ng);
+    printf("# allocated proj: %lu [bytes]\n", sizeof(double complex) * nk * nproj * ng);
+
+    printf("#### Allocate realspace variables\n");
+    double complex *wf_r;
+    double *rho_r;
+    double *vloc_r;
+    int nr1, nr2, nr3, nr;
+    nr1 = 2 * mb1;
+    nr2 = 2 * mb2;
+    nr3 = 2 * mb3;
+    nr = nr1 * nr2 * nr3;
+
+    rho_r = (double*) malloc(sizeof(double) * nr);
+    vloc_r = (double*) malloc(sizeof(double) * nr);
+    wf_r = (double complex*) malloc(sizeof(double complex) * nr);
+
+    printf("# allocated wf_r: %lu [bytes]\n", sizeof(double complex) * nr);
+    printf("# allocated vloc_r: %lu [bytes]\n", sizeof(double) * nr);
+    printf("# allocated rho_r: %lu [bytes]\n", sizeof(double) * nr);
+
+
+
+Vec3d q;
 
     printf("#### Kinetic energy table generation\n");
-    double* tktbl;
-    Vec3d q;
-    tktbl = (double*) malloc(sizeof(double) * nk * ng);
-    #define TKTBL(IK,IG) tktbl[IG+ng*IK]
     for (int ik = 0; ik < nk; ik++) {
         for (int ig = 0; ig < ng; ig++) {
             q.x = ktbl[ik].x + gtbl[ig].x;
             q.y = ktbl[ik].y + gtbl[ig].y;
             q.z = ktbl[ik].z + gtbl[ig].z;
-            TKTBL(ik, ig) = 0.5 * dot3d(&q, &q);
+            tkin[ik][ig] = 0.5 * dot3d(&q, &q);
         }
     }
-    #undef TKTBL
+    
+
+
 
 
 
