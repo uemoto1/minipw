@@ -137,6 +137,27 @@ int main(int argc, char** argv) {
     int nk;
     Vec3d *ktbl;
     ktbl = generate_ktbl(&cell, nk1, nk2, nk3, &nk);
+    printf("# nk = %d\n", nk);
+
+
+
+    printf("#### Kinetic energy table generation\n");
+    double* tktbl;
+    Vec3d q;
+    tktbl = (double*) malloc(sizeof(double) * nk * ng);
+    #define TKTBL(IK,IG) tktbl[IG+ng*IK]
+    for (int ik = 0; ik < nk; ik++) {
+        for (int ig = 0; ig < ng; ig++) {
+            q.x = ktbl[ik].x + gtbl[ig].x;
+            q.y = ktbl[ik].y + gtbl[ig].y;
+            q.z = ktbl[ik].z + gtbl[ig].z;
+            TKTBL(ik, ig) = 0.5 * dot3d(&q, &q);
+        }
+    }
+    #undef TKTBL
+
+
+
 
     return 0;
 }

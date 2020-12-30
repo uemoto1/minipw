@@ -1,4 +1,4 @@
 CC=clang
 INCLUDES=
 LIBS=-lblas -llapack
-FLAGS=-std=c99 -DUSE_LAPACK
+FLAGS=-std=c99 -DUSE_LAPACK -Wall

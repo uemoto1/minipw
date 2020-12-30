@@ -39,5 +39,150 @@ void matmul_h(int na, int mb, int kab, double complex *a, double complex *b, dou
         #undef C
     #endif
 }
+/*
+void init_eigensolver(int n, EigenSolver* es) {
+    es->n = n;
+    es->n = m;
+    es->w = (double*) malloc(sizeof(double) * m);
+    es->v = (double complex*) malloc(sizeof(double complex) * n * m);
+    es->lwork = 2 * n - 1;
+    es->work = (double complex*) malloc(sizeof(double complex) * lwork);
+    es->rwork = (double*) malloc(sizeof(double) * (3 * n - 2));
+}
+
+void destroy_eigensolver(EigenSolver* es) {
+    free(es->w);
+    free(es->v);
+    free(es->work);
+    free(es->rwork);
+}
+*/
+void lobpcg(int n, int m, double* e, double complex* v) {
+    double complex hv[n*m];
+    double complex r[n*m], hr[n*m];
+    double complex p[n*m], hp[n*m];
+    double complex u[n*m*3], hu[n*m*3];
+    double complex a[9*m*m], b[9*m*m];
+    double w[3*m], rr[3*m];
+    int nsub = 2 * m;
+
+    int itype = 1;
+    int lwork = 2 * (3 * m) - 1;
+    double complex work[lwork];
+    double rwork[3 * (3 * m) - 2];
+    int info;
 
 
+    #define V(I,J) v[I+n*J]
+    #define HV(I,J) hv[I+n*J]
+    #define R(I,J) r[I+n*J]
+    #define HR(I,J) hr[I+n*J]
+    #define P(I,J) p[I+n*J]
+    #define HP(I,J) hp[I+n*J]
+    #define U(I,J) u[I+n*J]
+    #define HU(I,J) hu[I+n*J]
+
+    // |Hv> = h|v>;
+    for(int j=0; j<m; j++) {
+        for(int i=0; i<n; i++) {
+            HV(i, j) = V(i, j);
+        }
+    }
+    // e = <v|hv>
+    for(int j=0; j<m; j++) {
+        e[j] = 0.0;
+        for(int i=0; i<n; i++) {
+            e[j] += creal(conj(V(i, j)) * HV(i, j));
+        }
+    }
+    for(int iter=0; iter<10; iter++) {
+        // |r> = |Hv> - e|v>
+        for(int j=0; j<m; j++) {
+            for(int i=0; i<n; i++) {
+                R(i, j) = HV(i, j) - e[j] * V(i, j);
+            }
+        }
+        // rr = <r|r>
+        for(int j=0; j<m; j++) {
+            rr[j] = 0.0;
+            for(int i=0; i<n; i++) {
+                rr[j] += creal(conj(R(i, j)) * R(i, j));
+            }
+        }
+        
+
+        // Precondition R->R Not implemented;
+        
+        // |Hr> = H|r>
+        for(int j=0; j<m; j++) {
+            for(int i=0; i<n; i++) {
+                HR(i, j) = R(i, j);
+            }
+        }
+
+        // Construct |u>, |Hu>
+        for(int j=0; j<m; j++) {
+            for(int i=0; i<n; i++) {
+                U(i, j) = V(i, j);
+                HU(i, j) = HV(i, j);
+                U(i, j+m) = R(i, j);
+                HU(i, j+m) = HR(i, j);
+            }
+        }
+        if (nsub == 3 * m) {
+            for(int j=0; j<m; j++) {
+                for(int i=0; i<n; i++) {
+                    U(i, j+2*m) = P(i, j);
+                    HU(i, j+2*m) = HP(i, j);
+                }
+            }
+        }
+        
+        #define A(I,J) a[I+nsub*J]
+        #define B(I,J) b[I+nsub*J]
+        for (int j=0; j<nsub; j++) {
+            for (int i=0; i<nsub; i++) {
+                A(i, j) = 0.0;
+                B(i, j) = 0.0;
+                for (int k=0; k<n; k++) {
+                    A(i, j) += conj(U(k, i)) * HU(k, j);
+                    B(i, j) += conj(U(k, i) * U(k, j));
+                }
+            }
+        }
+
+        zhegv(&itype, "V", "L", &nsub, a, &nsub, b, &nsub, w, work, &lwork, rwork, &info);
+
+        for (int j=0; j<m; j++) {
+            for (int i=0; i<n; i++) {
+                V(i, j) = 0.0;
+                HV(i, j) = 0.0;
+                for (int k=0; k<nsub; k++) {
+                    V(i, j) += U(i, k) * A(k, j);
+                    HV(i, j) += HU(i, k) * A(k, j);
+                }
+                P(i, j) = 0.0;
+                HP(i, j) = 0.0;
+                for (int k=m; k<nsub; k++) {
+                    P(i, j) += U(i, k) * A(k, j);
+                    HP(i, j) += HU(i, k) * A(k, j);
+                }
+            }
+            e[j] = w[j];
+        }
+        #undef A
+        #undef B
+
+        nsub = 3 * m;
+    }
+
+    #undef V
+    #undef HV
+    #undef R
+    #undef HR
+    #undef P
+    #undef HP
+    #undef U
+    #undef HU
+
+}

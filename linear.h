@@ -19,6 +19,7 @@ void matmul_h(int, int, int, double complex*, double complex*, double complex*);
 
 
 
+void lobpcg(int, int, double*, double complex*);
 
 
 

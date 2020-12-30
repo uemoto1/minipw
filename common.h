@@ -23,3 +23,22 @@ typedef struct {
     double vol;
 } UnitCell;
 
+
+
+
+/*
+typedef struct {
+    // General variables
+    int n;
+    int m;
+    double* w;
+    double complex* v;
+    // Local variables
+    
+    // LAPACK variables
+    double complex* work;
+    int lwork;
+    double* rwork;
+} EigenSolver;
+*/
+
