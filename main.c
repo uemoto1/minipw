@@ -14,9 +14,9 @@ void calc_unitcell(Vec3d* a1, Vec3d* a2, Vec3d* a3, UnitCell* c) {
     scal3d(&c->b3, 2.0 * PI / c->vol);
 }
 
-int generate_gtbl(UnitCell* c, double ecut, int* mb1, int* mb2, int* mb3, Vec3d* gtbl) {
-    int mb1tmp, mb2tmp, mb3tmp;
-    int ngtmp, ng, ig;
+Vec3d* generate_gtbl(UnitCell* c, double ecut, int* ng, int* mb1, int* mb2, int* mb3) {
+    int ngtmp, mb1tmp, mb2tmp, mb3tmp;
+    Vec3d *gtbl;
     Vec3d g;
     // Estimate number of G points.
     mb1tmp = sqrt(2.0 * ecut * dot3d(&c->a1, &c->a1)) / (2.0 * PI);
@@ -25,7 +25,8 @@ int generate_gtbl(UnitCell* c, double ecut, int* mb1, int* mb2, int* mb3, Vec3d*
     ngtmp = (2 * mb1tmp + 1) *  (2 * mb2tmp + 1) * (2 * mb3tmp + 1);
     gtbl = (Vec3d*) malloc(sizeof(Vec3d) * ngtmp);
 
-    ig = 0; *mb1 = 0; *mb2 = 0; *mb3 = 0;
+    int ig = 0;
+    *mb1 = 0; *mb2 = 0; *mb3 = 0;
     for(int ib1 = -mb1tmp; ib1 <= mb1tmp; ib1++) {
         for(int ib2 = -mb2tmp; ib2 <= mb2tmp; ib2++) {
             for(int ib3 = -mb3tmp; ib3 <= mb3tmp; ib3++) {
@@ -42,18 +43,18 @@ int generate_gtbl(UnitCell* c, double ecut, int* mb1, int* mb2, int* mb3, Vec3d*
             }
         }
     }
-    ng = ig;
-    gtbl = realloc(gtbl, sizeof(Vec3d) * ng);
-    return ng;
+    *ng = ig;
+    //gtbl = realloc(gtbl, sizeof(Vec3d) * ng);
+    return gtbl;
 }
 
-int generate_ktbl(UnitCell* c, int nk1, int nk2, int nk3, Vec3d* ktbl) {
-    int ik, nk;
+Vec3d* generate_ktbl(UnitCell* c, int nk1, int nk2, int nk3, int* nk) {
     double t1, t2, t3;
+    Vec3d* ktbl;
 
     ktbl = (Vec3d*) malloc(sizeof(Vec3d) * nk1 * nk2 * nk3);
 
-    ik = 0;
+    int ik = 0;
     for (int ik1 = 0; ik1 < nk1; ik1++) {
         for (int ik2 = 0; ik2 < nk2; ik2++) {
             for (int ik3 = 0; ik3 < nk3; ik3++) {
@@ -67,8 +68,8 @@ int generate_ktbl(UnitCell* c, int nk1, int nk2, int nk3, Vec3d* ktbl) {
             }
         }
     }
-    nk = ik;
-    return nk;
+    *nk = ik;
+    return ktbl;
 }
 
 int main(int argc, char** argv) {
@@ -124,14 +125,12 @@ int main(int argc, char** argv) {
     printf("#### G table generation\n");
     int mb1, mb2, mb3, ng;
     Vec3d *gtbl;
-    ng = generate_gtbl(&cell, ecut, &mb1, &mb2, &mb3, gtbl);
+    gtbl = generate_gtbl(&cell, ecut, &ng, &mb1, &mb2, &mb3);
 
     printf("# ng = %d\n", ng);
     printf("# mb1 = %d\n", mb1);
     printf("# mb2 = %d\n", mb2);
     printf("# mb3 = %d\n", mb3);
-
-
 
 
 
