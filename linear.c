@@ -151,6 +151,7 @@ void lobpcg(int n, int m, double* e, double complex* v) {
             }
         }
 
+        // Solve A|u> = wB|u>
         zhegv(&itype, "V", "L", &nsub, a, &nsub, b, &nsub, w, work, &lwork, rwork, &info);
 
         for (int j=0; j<m; j++) {

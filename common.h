@@ -2,8 +2,30 @@
 
 #include<stdio.h>
 #include<stdlib.h>
+#include<string.h>
 #include<math.h>
 #include<complex.h>
+#include<ctype.h>
+
+typedef struct {
+    double a1_x;
+    double a1_y;
+    double a1_z;
+    double a2_x;
+    double a2_y;
+    double a2_z;
+    double a3_x;
+    double a3_y;
+    double a3_z;
+    double ecut;
+    int nk1;
+    int nk2;
+    int nk3;
+    int nb;
+} Param;
+
+
+
 
 #define PI  3.141592653589793
 
@@ -12,6 +34,8 @@ typedef struct {
     double y;
     double z;
 } Vec3d;
+
+
 
 typedef struct {
     Vec3d a1;

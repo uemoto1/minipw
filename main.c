@@ -1,10 +1,12 @@
 #include"common.h"
 #include"linear.h"
+#include"misc.h"
+#include"inputparam.h"
 
-void calc_unitcell(Vec3d* a1, Vec3d* a2, Vec3d* a3, UnitCell* c) {
-    c->a1 = *a1;
-    c->a2 = *a2;
-    c->a3 = *a3;
+void calc_unitcell(Param* p, UnitCell* c) {
+    c->a1.x = p->a1_x; c->a1.y = p->a1_y; c->a1.z = p->a1_z;
+    c->a2.x = p->a2_x; c->a2.y = p->a2_y; c->a2.z = p->a2_z;
+    c->a3.x = p->a3_x; c->a3.y = p->a3_y; c->a3.z = p->a3_z;
     cross3d(&c->a1, &c->a2, &c->b3);
     cross3d(&c->a2, &c->a3, &c->b1);
     cross3d(&c->a3, &c->a1, &c->b2);
@@ -73,45 +75,30 @@ Vec3d* generate_ktbl(UnitCell* c, int nk1, int nk2, int nk3, int* nk) {
 }
 
 int main(int argc, char** argv) {
-    Vec3d a1, a2, a3;
-    double ecut;
-    int nk1, nk2, nk3, nb;
     int nproj = 32;
-    
-    scanf("%lf", &a1.x);
-    scanf("%lf", &a1.y);
-    scanf("%lf", &a1.z);
-    scanf("%lf", &a2.x);
-    scanf("%lf", &a2.y);
-    scanf("%lf", &a2.z);
-    scanf("%lf", &a3.x);
-    scanf("%lf", &a3.y);
-    scanf("%lf", &a3.z);
-    scanf("%lf", &ecut);
-    scanf("%d", &nk1);
-    scanf("%d", &nk2);
-    scanf("%d", &nk3);
-    scanf("%d", &nb);
- 
-    printf("# a1.x = %e\n", a1.x);
-    printf("# a1.y = %e\n", a1.y);
-    printf("# a1.z = %e\n", a1.z);
-    printf("# a2.x = %e\n", a2.x);
-    printf("# a2.y = %e\n", a2.y);
-    printf("# a2.z = %e\n", a2.z);
-    printf("# a3.x = %e\n", a3.x);
-    printf("# a3.y = %e\n", a3.y);
-    printf("# a3.z = %e\n", a3.z);
-    printf("# ecut = %e\n", ecut);
-    printf("# nk1 = %d\n", nk1);
-    printf("# nk2 = %d\n", nk2);
-    printf("# nk3 = %d\n", nk3);
-    printf("# nb = %d\n", nb);
 
+    printf("#### Read input parameters\n");
+    Param param;
+    read_inputparam(stdin, &param);
+
+    printf("# param.a1_x = %e\n", param.a1_x);
+    printf("# param.a1_y = %e\n", param.a1_y);
+    printf("# param.a1_z = %e\n", param.a1_z);
+    printf("# param.a2_x = %e\n", param.a2_x);
+    printf("# param.a2_y = %e\n", param.a2_y);
+    printf("# param.a2_z = %e\n", param.a2_z);
+    printf("# param.a3_x = %e\n", param.a3_x);
+    printf("# param.a3_y = %e\n", param.a3_y);
+    printf("# param.a3_z = %e\n", param.a3_z);
+    printf("# param.ecut = %e\n", param.ecut);
+    printf("# param.nk1 = %d\n", param.nk1);
+    printf("# param.nk2 = %d\n", param.nk2);
+    printf("# param.nk3 = %d\n", param.nk3);
+    printf("# param.nb = %d\n", param.nb);
 
     printf("#### Unit cell information\n");
     UnitCell cell;
-    calc_unitcell(&a1, &a2, &a3, &cell);
+    calc_unitcell(&param, &cell);
 
     printf("# cell.vol = %e\n", cell.vol);
     printf("# cell.b1.x = %e\n", cell.b1.x);
@@ -128,7 +115,7 @@ int main(int argc, char** argv) {
     printf("#### G table generation\n");
     int mb1, mb2, mb3, ng;
     Vec3d *gtbl;
-    gtbl = generate_gtbl(&cell, ecut, &ng, &mb1, &mb2, &mb3);
+    gtbl = generate_gtbl(&cell, param.ecut, &ng, &mb1, &mb2, &mb3);
 
     printf("# ng = %d\n", ng);
     printf("# mb1 = %d\n", mb1);
@@ -139,7 +126,7 @@ int main(int argc, char** argv) {
     printf("#### k table generation\n");
     int nk;
     Vec3d *ktbl;
-    ktbl = generate_ktbl(&cell, nk1, nk2, nk3, &nk);
+    ktbl = generate_ktbl(&cell, param.nk1, param.nk2, param.nk3, &nk);
     printf("# nk = %d\n", nk);
 
 
@@ -152,11 +139,11 @@ int main(int argc, char** argv) {
     tkin = (double**) malloc(sizeof(double*) * nk);
     proj = (double complex**) malloc(sizeof(double complex*) * nk);
     for(int ik=0; ik<nk; ik++) {
-        wf[ik] = (double complex*) malloc(sizeof(double complex) * ng * nb);
+        wf[ik] = (double complex*) malloc(sizeof(double complex) * ng * param.nb);
         tkin[ik] = (double*) malloc(sizeof(double) * ng);
         proj[ik] = (double complex*) malloc(sizeof(double) * nproj * ng);
     }
-    printf("# allocated wf: %lu [bytes]\n", sizeof(double complex) * nk * nb * ng);
+    printf("# allocated wf: %lu [bytes]\n", sizeof(double complex) * nk * param.nb * ng);
     printf("# allocated tkin: %lu [bytes]\n", sizeof(double) * nk * ng);
     printf("# allocated proj: %lu [bytes]\n", sizeof(double complex) * nk * nproj * ng);
 
