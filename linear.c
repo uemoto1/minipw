@@ -24,9 +24,9 @@ void matmul_h(int na, int mb, int kab, double complex *a, double complex *b, dou
         double complex beta = 0.0;
         zgemm("c", "n", &na, &mb, &kab, &alpha, a, &kab, b, &kab, &beta, c, &mb);
     #else
-        #define A(I,J) a[I+J*kab]
-        #define B(I,J) b[I+J*kab]
-        #define C(I,J) c[I+J*na]
+        #define A(I,J) a[I+kab*(J)]
+        #define B(I,J) b[I+kab*(J)]
+        #define C(I,J) c[I+na*(J)]
         for (int i=0; i<na; i++) {
             for (int j=0; j<mb; j++) {
                 C(i, j) = 0.0;
@@ -83,7 +83,6 @@ void lobpcg(int n, int m, double* e, double complex* v) {
     double rwork[3 * (3 * m) - 2];
     int info;
 
-
     #define V(I,J) v[I+n*(J)]
     #define HV(I,J) hv[I+n*(J)]
     #define R(I,J) r[I+n*(J)]
@@ -92,14 +91,6 @@ void lobpcg(int n, int m, double* e, double complex* v) {
     #define HP(I,J) hp[I+n*(J)]
     #define U(I,J) u[I+n*(J)]
     #define HU(I,J) hu[I+n*(J)]
-
-    #define K(I,J) I+n*(J)
-
-    // for(int j=0; j<m; j++) {
-    //     for(int i=0; i<n; i++) {
-    //         printf("%d %d -> %d\n", i, j, K(i, j));
-    //     }
-    // }
 
     // |Hv> = h|v>;
     operate_h(n, m, v, hv);
@@ -123,7 +114,6 @@ void lobpcg(int n, int m, double* e, double complex* v) {
             }
         }
 
-
         // rr = <r|r>
         for(int j=0; j<m; j++) {
             rr[j] = 0.0;
@@ -135,17 +125,14 @@ void lobpcg(int n, int m, double* e, double complex* v) {
         for (int j = 1; j < m; j++)
             if (rr[j] < rr_min)
                 rr_min = rr[j];
+       
         printf("# LOBPCG: iter=%d, rr_min = %e\n", iter, rr_min);
 
-        if (rr_min < 1e-6) {
-            return;
-        }
-        
+        if (rr_min < 1e-6) return;
 
         operate_h(n, m, r, hr);
         // Precondition R->R Not implemented;
         
-
         // Construct |u>, |Hu>
         for(int j=0; j<m; j++) {
             for(int i=0; i<n; i++) {
@@ -164,10 +151,6 @@ void lobpcg(int n, int m, double* e, double complex* v) {
                 }
             }
         }
-
-
-
-
         
         #define A(I,J) a[I+nsub*(J)]
         #define B(I,J) b[I+nsub*(J)]
@@ -182,26 +165,6 @@ void lobpcg(int n, int m, double* e, double complex* v) {
                 }
             }
         }
-
-
-        // for(int j=0; j<m; j++) {
-        // double q = 0;
-        //     for(int k=0; k<n; k++) {
-        //         q += conj(U(k, j)) * U(k, j);
-        //     }
-        //     printf("Q: %e %+e\n", creal(q), cimag(q));
-        // }
-
-
-
-        // for (int j=0; j<nsub; j++)
-        // for (int i=0; i<nsub; i++)
-        // printf("#A(%d,%d) %d = %e %+e\n", i, j, Q(i, j), creal(A(i, j)), cimag(A(i, j)));
-
-        // for (int j=0; j<nsub; j++)
-        // for (int i=0; i<nsub; i++)
-        // printf("#B(%d,%d) %d = %e %+e\n", i, j, Q(i, j), creal(B(i, j)), cimag(B(i, j)));
-
 
         // Solve A|u> = wB|u>
         zhegv(&itype, "V", "L", &nsub, a, &nsub, b, &nsub, w, work, &lwork, rwork, &info);
@@ -225,11 +188,6 @@ void lobpcg(int n, int m, double* e, double complex* v) {
         }
         #undef A
         #undef B
-
-    // for(int j=0; j<m; j++) {
-    //     printf("e[%d] = %e\n", j, e[j]);
-    // }
-
 
         nsub = 3 * m;
     }
