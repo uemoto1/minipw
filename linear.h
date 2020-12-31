@@ -2,10 +2,8 @@
 
 #include<complex.h>
 
-#ifdef USE_LAPACK
 void zgemm(char*, char*, int*, int*, int*, double complex*, double complex*, int*, double complex*, int*, double complex*, double complex*, int*);	
 void zhegv(int*, char*, char*, int*, double complex*, int*, double complex*, int*, double*, double complex*, int*, double*, int*);
-#endif
 
 double dot3d(Vec3d*, Vec3d*);
 void cross3d(Vec3d*, Vec3d*, Vec3d*);

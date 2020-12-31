@@ -1,23 +1,17 @@
 include make.inc
 
-minipw: main.o linear.o inputparam.o misc.o
-	$(CC) $^ -o $@ $(FLAGS) $(LIBS)
+SRCS=$(wildcard *.c)
+OBJS=$(SRCS:.c=.o)
 
-main.o: main.c common.h
-	$(CC) $< -c -o $@ $(FLAGS) $(INCLUDES)
+minipw: $(OBJS)
+	$(CC) -o $@ $(OBJS) $(FLAGS) $(LIBS)
 
-linear.o: linear.c linear.h common.h
-	$(CC) $< -c -o $@ $(FLAGS) $(INCLUDES)
-
-inputparam.o: inputparam.c inputparam.h common.h
-	$(CC) $< -c -o $@ $(FLAGS) $(INCLUDES)
-
-misc.o: misc.c misc.h common.h
-	$(CC) $< -c -o $@ $(FLAGS) $(INCLUDES)
+.c.o:
+	$(CC) -c $< $(FLAGS) $(INCLUDES)
 
 .PHONY: all clean
 
 all: minipw
 
 clean:
-	rm -f minipw *.o
+	rm -f minipw $(OBJS)
