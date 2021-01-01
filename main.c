@@ -3,6 +3,12 @@
 #include"misc.h"
 #include"inputparam.h"
 
+uint32_t xorshift(void) {
+  static uint32_t y = 2463534242;
+  y = y ^ (y << 13); y = y ^ (y >> 17);
+  return y = y ^ (y << 5);
+}
+
 void calc_unitcell(Param* p, UnitCell* c) {
     c->a1.x = p->a1_x; c->a1.y = p->a1_y; c->a1.z = p->a1_z;
     c->a2.x = p->a2_x; c->a2.y = p->a2_y; c->a2.z = p->a2_z;
@@ -131,39 +137,42 @@ int main(int argc, char** argv) {
 
 
     printf("#### Allocate wavefunction\n");
-    double complex **wf;
-    double complex **proj;
-    double **tkin;
+    double complex *wf;
+    double complex *proj;
+    double *tkin;
+    double *eig;
+    int nb = param.nb;
 
-    wf = (double complex**) malloc(sizeof(double complex*) * nk);
-    tkin = (double**) malloc(sizeof(double*) * nk);
-    proj = (double complex**) malloc(sizeof(double complex*) * nk);
-    for(int ik=0; ik<nk; ik++) {
-        wf[ik] = (double complex*) malloc(sizeof(double complex) * ng * param.nb);
-        tkin[ik] = (double*) malloc(sizeof(double) * ng);
-        proj[ik] = (double complex*) malloc(sizeof(double) * nproj * ng);
-    }
-    printf("# allocated wf: %lu [bytes]\n", sizeof(double complex) * nk * param.nb * ng);
+    wf = (double complex*) malloc(sizeof(double complex) * nk * nb * ng);
+    eig = (double *) malloc(sizeof(double) * nk * nb);
+    tkin = (double *) malloc(sizeof(double) * nk * ng);
+    proj = (double complex *) malloc(sizeof(double complex) * nk * nproj * ng);
+    printf("# allocated wf: %lu [bytes]\n", sizeof(double complex) * nk * nb * ng);
+    printf("# allocated eig: %lu [bytes]\n", sizeof(double) * nk * nb);
     printf("# allocated tkin: %lu [bytes]\n", sizeof(double) * nk * ng);
     printf("# allocated proj: %lu [bytes]\n", sizeof(double complex) * nk * nproj * ng);
+
+    #define WF(IK,IB,IG) wf[(IG)+ng*(IB)+ng*nb*(IK)]
+    #define EIG(IK,IB) eig[(IB)+nb*(IK)]
+    #define TKIN(IK,IG) tkin[(IG)+ng*(IK)]
+
 
     printf("#### Allocate realspace variables\n");
     double complex *wf_r;
     double *rho_r;
     double *vloc_r;
-    int nr1, nr2, nr3, nr;
+    int nr1, nr2, nr3;
     nr1 = 2 * mb1;
     nr2 = 2 * mb2;
     nr3 = 2 * mb3;
-    nr = nr1 * nr2 * nr3;
+    
+    rho_r = (double*) malloc(sizeof(double) * nr1 * nr2 * nr3);
+    vloc_r = (double*) malloc(sizeof(double) * nr1 * nr2 * nr3);
+    wf_r = (double complex*) malloc(sizeof(double complex) * nr1 * nr2 * nr3);
 
-    rho_r = (double*) malloc(sizeof(double) * nr);
-    vloc_r = (double*) malloc(sizeof(double) * nr);
-    wf_r = (double complex*) malloc(sizeof(double complex) * nr);
-
-    printf("# allocated wf_r: %lu [bytes]\n", sizeof(double complex) * nr);
-    printf("# allocated vloc_r: %lu [bytes]\n", sizeof(double) * nr);
-    printf("# allocated rho_r: %lu [bytes]\n", sizeof(double) * nr);
+    printf("# allocated wf_r: %lu [bytes]\n", sizeof(double complex) * nr1 * nr2 * nr3);
+    printf("# allocated vloc_r: %lu [bytes]\n", sizeof(double) * nr1 * nr2 * nr3);
+    printf("# allocated rho_r: %lu [bytes]\n", sizeof(double) * nr1 * nr2 * nr3);
 
 
 
@@ -175,15 +184,41 @@ Vec3d q;
             q.x = ktbl[ik].x + gtbl[ig].x;
             q.y = ktbl[ik].y + gtbl[ig].y;
             q.z = ktbl[ik].z + gtbl[ig].z;
-            tkin[ik][ig] = 0.5 * dot3d(&q, &q);
+            TKIN(ik, ig) = 0.5 * dot3d(&q, &q);
         }
     }
-    
+
+    printf("#### Initialize wavefunction\n");
+    for (int ik = 0; ik < nk; ik++) {
+        for (int ib = 0; ib < nb; ib++) {
+            double r = 0.0;
+            for (int ig = 0; ig < ng; ig++) {
+                WF(ik, ib, ig) = 1.0 * xorshift() + 1.0i * xorshift();
+                r += creal(conj(WF(ik, ib, ig)) * WF(ik, ib, ig));
+            }
+            r = 1.0 / sqrt(r);
+            for (int ig = 0; ig < ng; ig++) {
+                WF(ik, ib, ig) = r * WF(ik, ib, ig);
+            }
+        }
+    }
+
+    for (int iscf = 0; iscf < 10; iscf++) {
+        printf("# iscf = %d\n", iscf);
+        for (int ik = 0; ik < nk; ik++){
+            lobpcg(ng, nb, &EIG(ik, 0), &WF(ik, 0, 0), &TKIN(ik, 0));
+        }
+    }
 
 
 
+    for(int j=0; j<param.nb; j++) {
+        printf("e[%d] = %e\n", j, eig[j]);
+    }
 
-
+    #undef WF
+    #undef EIG
+    #undef TKIN
 
     return 0;
 }

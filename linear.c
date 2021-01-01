@@ -58,17 +58,17 @@ void destroy_eigensolver(EigenSolver* es) {
 }
 */
 
-void operate_h(int n, int m, double complex* x, double complex* hx) {
+void operate_h(int n, int m, double complex* x, double complex* hx, double* tkin) {
     #define X(I,J) x[I+n*(J)]
     #define HX(I,J) hx[I+n*(J)]
     for (int j=0; j<m; j++)
         for (int i=0; i<n; i++)
-            HX(i, j) = (i + 1.0) * X(i, j);
+            HX(i, j) = tkin[i] * X(i, j);
     #undef X
     #undef HX
 }
 
-void lobpcg(int n, int m, double* e, double complex* v) {
+void lobpcg(int n, int m, double* e, double complex* v, double* tkin) {
     double complex hv[n*m];
     double complex r[n*m], hr[n*m];
     double complex p[n*m], hp[n*m];
@@ -93,7 +93,7 @@ void lobpcg(int n, int m, double* e, double complex* v) {
     #define HU(I,J) hu[I+n*(J)]
 
     // |Hv> = h|v>;
-    operate_h(n, m, v, hv);
+    operate_h(n, m, v, hv, tkin);
     // e = <v|hv>
     for(int j=0; j<m; j++) {
         e[j] = 0.0;
@@ -102,11 +102,7 @@ void lobpcg(int n, int m, double* e, double complex* v) {
         }
     }
 
-    for(int j=0; j<m; j++) {
-        printf("e[%d] = %e\n", j, e[j]);
-    }
-
-    for(int iter=0; iter<10; iter++) {
+    for(int iter=0; iter<5; iter++) {
         // |r> = |Hv> - e|v>
         for(int j=0; j<m; j++) {
             for(int i=0; i<n; i++) {
@@ -126,11 +122,11 @@ void lobpcg(int n, int m, double* e, double complex* v) {
             if (rr[j] < rr_min)
                 rr_min = rr[j];
        
-        printf("# LOBPCG: iter=%d, rr_min = %e\n", iter, rr_min);
+        printf("#     LOBPCG: iter=%d, rr_min = %e\n", iter, rr_min);
 
         if (rr_min < 1e-6) return;
 
-        operate_h(n, m, r, hr);
+        operate_h(n, m, r, hr, tkin);
         // Precondition R->R Not implemented;
         
         // Construct |u>, |Hu>
@@ -200,5 +196,7 @@ void lobpcg(int n, int m, double* e, double complex* v) {
     #undef HP
     #undef U
     #undef HU
+
+
 
 }
