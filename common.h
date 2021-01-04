@@ -47,6 +47,32 @@ typedef struct {
     double vol;
 } UnitCell;
 
+typedef struct {
+    char name[256];
+
+    double zatom;
+    double zion;
+    double pspd;
+    int pspcod;
+    int pspxc;
+    int lmax;
+    int lloc;
+    int mmax;
+    int r2well;
+    double rchrg;
+    double fchrg;
+    double qchrg;
+    int nproj[5];
+    int extension_switch[2];
+
+    int nproj_total;
+
+    int *l;
+    double *ekb;
+    double *r;
+    double *f;
+} Psp8_file;
+
 
 
 
