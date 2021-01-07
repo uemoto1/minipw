@@ -1,6 +1,7 @@
 #pragma once
 #include "common.h"
 
+uint32_t rand_xorshift(void);
 void get_key_value(char *, char *, char *);
 double strtod_fortran(char *);
 

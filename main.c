@@ -1,14 +1,7 @@
 #include "common.h"
-#include "inputparam.h"
 #include "linear.h"
+#include "inputparam.h"
 #include "misc.h"
-
-uint32_t xorshift(void) {
-  static uint32_t y = 2463534242;
-  y = y ^ (y << 13);
-  y = y ^ (y >> 17);
-  return y = y ^ (y << 5);
-}
 
 void calc_unitcell(Param *p, UnitCell *c) {
   c->a1.x = p->a1_x;
@@ -65,7 +58,7 @@ Vec3d *generate_gtbl(UnitCell *c, double ecut, int *ng, int *mb1, int *mb2,
     }
   }
   *ng = ig;
-  // gtbl = realloc(gtbl, sizeof(Vec3d) * ng);
+  gtbl = realloc(gtbl, sizeof(Vec3d) * (*ng));
   return gtbl;
 }
 
@@ -203,7 +196,7 @@ int main(int argc, char **argv) {
     for (int ib = 0; ib < nb; ib++) {
       double r = 0.0;
       for (int ig = 0; ig < ng; ig++) {
-        WF(ik, ib, ig) = 1.0 * xorshift() + 1.0i * xorshift();
+        WF(ik, ib, ig) = 1.0 * rand_xorshift() + 1.0i * rand_xorshift();
         r += creal(conj(WF(ik, ib, ig)) * WF(ik, ib, ig));
       }
       r = 1.0 / sqrt(r);

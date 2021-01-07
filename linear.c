@@ -1,6 +1,5 @@
-#include "linear.h"
-
 #include "common.h"
+#include "linear.h"
 
 double dot3d(Vec3d *a, Vec3d *b) {
   return a->x * b->x + a->y * b->y + a->z * b->z;

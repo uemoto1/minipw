@@ -1,5 +1,12 @@
 #include "misc.h"
 
+uint32_t rand_xorshift(void) {
+  static uint32_t y = 2463534242;
+  y = y ^ (y << 13);
+  y = y ^ (y >> 17);
+  return y = y ^ (y << 5);
+}
+
 void get_key_value(char *p, char *k, char *v) {
   // Left hand side
   while (*p != '\0') {
