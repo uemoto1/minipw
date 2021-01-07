@@ -9,9 +9,13 @@ minipw: $(OBJS)
 .c.o:
 	$(CC) -c $< $(FLAGS) $(INCLUDES)
 
-.PHONY: all clean
+.PHONY: all clean format
 
 all: minipw
 
 clean:
 	rm -f minipw $(OBJS)
+
+format:
+	clang-format -i *.c *.h
+
