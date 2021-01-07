@@ -4,13 +4,6 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 
-double strtod_fortran(char *s) {
-    for (int i=0; i<64 && s[i] != '\0'; i++) {
-        if (s[i] == 'd' || s[i] == 'D')
-            s[i] = 'e';
-    }
-    return strtod(s, NULL);
-}
 
 
 void read_psp8(char* file_psp8) {
@@ -18,53 +11,47 @@ void read_psp8(char* file_psp8) {
     
     fp = fopen(file_psp8, "r");
 
-    char tmp[64];
-
-    #define NEXT_LINE() fscanf(fp, "%*[^\n]%*c")
-    #define READ_INT(I) fscanf(fp, "%64s", tmp), (I) = strtol(tmp, NULL, 10)
-    #define READ_REAL(R) fscanf(fp, "%64s", tmp), (R) = strtod_fortran(tmp)
-
     double zatom, zion, pspd, rchrg, fchrg, qchrg;
     int pspcod, pspxc, lmax, lloc, mmax, r2well, nproj[5], extension_switch[2];
 
     int idummy;
 
     // line 1: skip
-    NEXT_LINE();
+    next_line(fp);
 
     // line 2: zatom, zion, pspd
-    READ_REAL(zatom);
-    READ_REAL(zion);
-    READ_REAL(pspd);
-    NEXT_LINE();
+    zatom = read_real(fp);
+    zion = read_real(fp);
+    pspd = read_real(fp);
+    next_line(fp);
 
     // line 3: pspcod, pspxc, lmax, lloc, mmax, r2well
-    READ_INT(pspcod);
-    READ_INT(pspxc);
-    READ_INT(lmax);
-    READ_INT(lloc);
-    READ_INT(mmax);
-    READ_INT(r2well);
-    NEXT_LINE();
+    pspcod = read_int(fp);
+    pspxc = read_int(fp);
+    lmax = read_int(fp);
+    lloc = read_int(fp);
+    mmax = read_int(fp);
+    r2well = read_int(fp);
+    next_line(fp);
 
     // line 4: rchrg, fchrg, qchrg
-    READ_REAL(rchrg);
-    READ_REAL(fchrg);
-    READ_REAL(qchrg);
-    NEXT_LINE();
+    rchrg = read_real(fp);
+    fchrg = read_real(fp);
+    qchrg = read_real(fp);
+    next_line(fp);
 
     // line 5: nproj
-    READ_INT(nproj[0]);
-    READ_INT(nproj[1]);
-    READ_INT(nproj[2]);
-    READ_INT(nproj[3]);
-    READ_INT(nproj[4]);
-    NEXT_LINE();
+    nproj[0] = read_int(fp);
+    nproj[1] = read_int(fp);
+    nproj[2] = read_int(fp);
+    nproj[3] = read_int(fp);
+    nproj[4] = read_int(fp);
+    next_line(fp);
 
     // line 6: extension_switch
-    READ_INT(extension_switch[0]);
-    READ_INT(extension_switch[1]);
-    NEXT_LINE();
+    extension_switch[0] = read_int(fp);
+    extension_switch[1] = read_int(fp);
+    next_line(fp);
 
     printf("zatom=%f\n", zatom);
     printf("zion=%f\n", zion);
@@ -97,29 +84,22 @@ void read_psp8(char* file_psp8) {
     #define FKB(L,IRAD,IPROJ) fkb[(IPROJ)+mproj*(IRAD)+mproj*mmax*(L)]
 
     for (int l = 0; l < nl; l++) {
-        READ_INT(idummy);
+        idummy = read_int(fp);
         for (int iproj = 0; iproj < nproj[l]; iproj++)
-            READ_REAL(EKB(l, iproj));
-        NEXT_LINE();
+            EKB(l, iproj = read_real(fp));
+        next_line(fp);
 
         for (int irad = 0; irad < mmax; irad++) {
-            READ_INT(idummy);
-            READ_REAL(rad[irad]);
+            idummy = read_int(fp);
+            rad[irad] = read_real(fp);
             for (int iproj = 0; iproj < nproj[l]; iproj++) {
-                READ_REAL(FKB(l, irad, iproj));
+                FKB(l, irad, iproj = read_real(fp));
             }
-            NEXT_LINE();
+            next_line(fp);
         }
     }
 
     return;
-}
-
-
-
-int main() {
-    read_psp8("H.psp8");
-    return 0;
 }
 
 

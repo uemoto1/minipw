@@ -16,3 +16,27 @@ void get_key_value(char* p, char* k, char* v) {
     *v = '\0';
 }
 
+double strtod_fortran(char *s) {
+    for (int i=0; i<64 && s[i] != '\0'; i++) {
+        if (s[i] == 'd' || s[i] == 'D')
+            s[i] = 'e';
+    }
+    return strtod(s, NULL);
+}
+
+void next_line(FILE* fp) {
+    fscanf(fp, "%*[^\n]%*c");
+}
+
+int read_int(FILE* fp) {
+    char tmp[32+1];
+    fscanf(fp, "%32s", tmp);
+    return strtol(tmp, NULL, 10);
+}
+
+double read_real(FILE* fp) {
+    char tmp[32+1];
+    fscanf(fp, "%32s", tmp);
+    return strtod_fortran(tmp);
+}
+
